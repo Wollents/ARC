@@ -3,6 +3,7 @@ from utils import *
 import warnings
 from train_test import ARCDetector
 import numpy as np
+from torch_geometric.nn import Node2Vec, GCN
 
 
 def set_seed(seed):
@@ -22,7 +23,7 @@ parser.add_argument('--shot', type=int, default=10)
 parser.add_argument('--json_dir', type=str, default='./params')
 args = parser.parse_known_args()[0]
 
-datasets_test = ['cora', 'citeseer', 'ACM', 'BlogCatalog', 'Facebook', 'weibo', 'Reddit', 'Amazon', 'cs', 'photo', 'tolokers', 'tfinance']
+datasets_test = ['cora', 'citeseer', 'ACM', 'BlogCatalog', 'Facebook', 'weibo', 'Reddit', 'Amazon', 'cs', 'photo', 'tolokers']
 datasets_train = ['pubmed', 'Flickr', 'questions', 'YelpChi']
 
 model = args.model
@@ -35,6 +36,7 @@ train_config = {
     'epochs': 40,
     'testdsets': datasets_test,
 }
+
 dims = 64
 data_train = [Dataset(dims, name) for name in datasets_train]
 data_test = [Dataset(dims, name) for name in datasets_test]  # CPU

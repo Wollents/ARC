@@ -1,11 +1,12 @@
 from torch import nn
 import torch.nn.functional as F
+from torch_geometric.nn import Node2Vec
 import random
 import torch
 
 
 class ARC(nn.Module):
-    def __init__(self, in_feats, h_feats=32, num_layers=2, dropout_rate=0, activation='ReLU', num_hops=4, **kwargs):
+    def __init__(self, data, in_feats, h_feats=32, num_layers=2, dropout_rate=0, activation='ReLU', num_hops=4, **kwargs):
         super(ARC, self).__init__()
         self.layers = nn.ModuleList()
         self.act = getattr(nn, activation)()
@@ -17,6 +18,8 @@ class ARC(nn.Module):
             self.layers.append(nn.Linear(h_feats, h_feats))
         self.dropout = nn.Dropout(dropout_rate) if dropout_rate > 0 else nn.Identity()
         self.cross_attn = CrossAttn(h_feats * num_hops)
+
+
 
     def forward(self, h):
         x_list = h.x_list

@@ -7,7 +7,7 @@ class ARCDetector:
         self.model_config = model_config
         self.train_config = train_config
         self.data = data
-        self.model = ARC(**model_config).to(train_config['device'])
+        self.model = ARC(data=data, **model_config).to(train_config['device'])
 
     def train(self):
         # Training

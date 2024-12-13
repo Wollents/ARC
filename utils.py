@@ -53,7 +53,7 @@ def feat_alignment(X, edges, dims):
     for k in range(X_transformed.shape[1]):
         # X_{i k}-X_{j k}, (v_i, v_j) \in Edge set
         differences = X_s[edge_src, k] - X_s[edge_dst, k]
-        smooth_coefficients[k] = torch.sum(differences ** 2) / num_edges
+        smooth_coefficients[k] = - torch.sum(differences ** 2) / num_edges
     # sort
     _, sorted_indices = torch.sort(smooth_coefficients)
     X_reordered = X_transformed[:, sorted_indices]
@@ -81,7 +81,7 @@ def normalize_adj(adj):
 
 
 class Dataset:
-    def __init__(self, dims, name='cora', prefix='./dataset/'):
+    def __init__(self, dims, name='cora', prefix='./dataset_gen/', dataset_dir = './dataset/'):
         # initiation
         self.shot_mask = None
         self.shot_idx = None
@@ -90,17 +90,19 @@ class Dataset:
         self.name = name
 
         preprocess_filename = f'{prefix}{name}_{dims}.npz'
+       
         if os.path.exists(preprocess_filename):
             with np.load(preprocess_filename, allow_pickle=True) as f:
                 data = f['data'].item()
                 feat = f['feat']
         else:
-            data = sio.loadmat(f"{prefix + name}.mat")
+            data = sio.loadmat(f"{dataset_dir + name}.mat")
             adj = data['Network']
             feat = data['Attributes']
             adj_sp = sp.csr_matrix(adj)
             row, col = adj_sp.nonzero()
             edge_index = torch.tensor([row, col], dtype=torch.long)
+
             if name in ['Amazon', 'YelpChi', 'tolokers', 'tfinance']:
                 feat = sp.lil_matrix(feat)
                 feat = preprocess_features(feat)
@@ -123,12 +125,16 @@ class Dataset:
         self.feat = feat
         ano_labels = torch.tensor(np.squeeze(np.array(self.label)), dtype=torch.float)
         # Create a PyTorch Geometric Data object
+        adj_sp = sp.csr_matrix(adj)
+        row, col = adj_sp.nonzero()
+        edge_index = torch.tensor([row, col], dtype=torch.long)
         data = Data(x=torch.tensor(self.feat, dtype=torch.float),
                     x_list=self.x_list,
                     adj=self.adj_norm,
                     ano_labels=ano_labels,
                     shot_idx=self.shot_idx,
-                    shot_mask=self.shot_mask
+                    shot_mask=self.shot_mask,
+                    edge_index=edge_index
                     )
         self.graph = data
 
