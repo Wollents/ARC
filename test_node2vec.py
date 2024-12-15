@@ -1,6 +1,6 @@
 from torch_geometric.nn import Node2Vec, GCN
 from utils import *
-
+from sklearn.metrics import roc_auc_score, average_precision_score
 dataset = Dataset(64, "cora")
 data = dataset.graph
 
@@ -47,8 +47,23 @@ def test():
     )
     return acc
 
+@torch.no_grad()
+def test_anoamly():
+    model.eval()
+    z = model()
+    s_ = torch.sigmoid(z @ z.T).to(device)
+    s = data.adj.to(device)
+    error = torch.pow(s_ - s, 2)
+    score = error.mean(dim=-1)
+    auc = roc_auc_score(data.ano_labels.cpu().numpy(), score.cpu().numpy())
+    return auc
+
 
 for epoch in range(1, 101):
+    torch.cuda.reset_peak_memory_stats()
     loss = train()
-    acc = test()
-    print(f'Epoch: {epoch:03d}, Loss: {loss:.4f}, Acc: {acc:.4f}')
+    train_mem = torch.cuda.max_memory_allocated() / 1024 / 1024
+    torch.cuda.reset_peak_memory_stats()
+    auc = test_anoamly()
+    test_men = torch.cuda.max_memory_allocated() / 1024 / 1024
+    print(f'Epoch: {epoch:03d}, Loss: {loss:.4f}, Auc: {auc:.4f}, "Train_mem : {train_mem:.4f} MB", "Test_mem : {test_men:.4f} MB", ')
