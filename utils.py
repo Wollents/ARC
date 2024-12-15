@@ -130,7 +130,7 @@ class Dataset:
         edge_index = torch.tensor([row, col], dtype=torch.long)
         data = Data(x=torch.tensor(self.feat, dtype=torch.float),
                     x_list=self.x_list,
-                    adj=self.adj_norm,
+                   # adj=self.adj_norm,
                     ano_labels=ano_labels,
                     shot_idx=self.shot_idx,
                     shot_mask=self.shot_mask,
